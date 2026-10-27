@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+{% block title %}Analytics{% endblock %}
+{% block content %}
+
+<div class="row space-between">
+  <h2>Analytics</h2>
+  <div class="row gap">
+    <a class="btn small" href="/r/{{ restaurant.id }}/report">JSON report</a>
+    <a class="btn small" href="/r/{{ restaurant.id }}/report.csv">CSV export</a>
+  </div>
+</div>
+
+<div class="card">
+  <h3>Aspect sentiment</h3>
+  <p class="muted small">{{ aspects.aspect_mentions }} aspect mentions across analyzed reviews. “Net” = positive − negative mentions.</p>
+  {% set maxtot = (aspects.aspects | map(attribute='total') | max) or 1 %}
+  <table class="table">
+    <thead><tr><th>Aspect</th><th>Positive</th><th>Neutral</th><th>Negative</th><th>Net</th><th>Mentions</th></tr></thead>
+    <tbody>
+    {% for a in aspects.aspects %}
+      <tr>
+        <td>{{ a.aspect }}</td>
+        <td class="pos">{{ a.positive }}</td>
+        <td>{{ a.neutral }}</td>
+        <td class="neg">{{ a.negative }}</td>
+        <td>{{ a.net }}</td>
+        <td><div class="bar-track"><div class="bar-fill rating" style="width:{{ (100*a.total/maxtot)|round(1) }}%"></div></div></td>
+      </tr>
+    {% else %}
+      <tr><td colspan="6" class="muted">No aspect data yet.</td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<div class="grid-2">
+  <div class="card">
+    <h3>Top complaints</h3>
+    <ul class="themes">
+      {% for t in complaints %}<li>{{ t.theme }} <span class="muted">({{ t.count }})</span></li>
+      {% else %}<li class="muted">None detected.</li>{% endfor %}
+    </ul>
+  </div>
+  <div class="card">
+    <h3>Most praised</h3>
+    <ul class="themes">
+      {% for t in praise %}<li>{{ t.theme }} <span class="muted">({{ t.count }})</span></li>
+      {% else %}<li class="muted">None detected.</li>{% endfor %}
+    </ul>
+  </div>
+</div>
+
+{% if sentiment_trend.enough_data %}
+<div class="card">
+  <h3>Monthly sentiment</h3>
+  <table class="table">
+    <thead><tr><th>Month</th><th>Positive</th><th>Neutral</th><th>Negative</th></tr></thead>
+    <tbody>
+    {% for m in sentiment_trend.series %}
+      <tr><td>{{ m.period }}</td><td class="pos">{{ m.positive }}</td><td>{{ m.neutral }}</td><td class="neg">{{ m.negative }}</td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% else %}
+  <div class="card"><p class="muted">Not enough monthly data to show a sentiment trend yet (needs ≥ 2 periods).</p></div>
+{% endif %}
+
+<div class="card">
+  <h3>Evidence-backed recommendations</h3>
+  <p class="muted small">Each recommendation is derived from recurring complaint evidence and links the supporting review count. These are interpretations backed by measured data — not causal or revenue claims.</p>
+  {% for r in recs %}
+    <div class="rec">
+      <div class="row space-between">
+        <b>{{ r.proposed_action }}</b>
+        <span class="pill">{{ r.support_count }} supporting</span>
+      </div>
+      <div class="muted small">Theme: {{ r.supporting_theme }} · {{ r.priority_rationale }}</div>
+      <div class="muted small">⚠ {{ r.uncertainty }}</div>
+    </div>
+  {% else %}
+    <p class="muted">No recommendation currently clears the minimum evidence threshold.</p>
+  {% endfor %}
+</div>
+
+{% endblock %}

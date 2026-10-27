@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Smart Review Intelligence{% endblock %}</title>
+  <link rel="stylesheet" href="/static/style.css">
+  <script src="https://unpkg.com/htmx.org@1.9.12" defer></script>
+</head>
+<body>
+<header class="topbar">
+  <div class="brand">🍽️ Smart Review Intelligence</div>
+  {% if user %}
+  <nav class="nav">
+    <a href="/" class="{{ 'active' if nav=='dashboard' }}">Dashboard</a>
+    {% if restaurant %}
+      <a href="/r/{{ restaurant.id }}/reviews" class="{{ 'active' if nav=='reviews' }}">Reviews</a>
+      <a href="/r/{{ restaurant.id }}/analytics" class="{{ 'active' if nav=='analytics' }}">Analytics</a>
+      <a href="/r/{{ restaurant.id }}/chat" class="{{ 'active' if nav=='chat' }}">Ask</a>
+      <a href="/r/{{ restaurant.id }}/replies" class="{{ 'active' if nav=='replies' }}">Reply Studio</a>
+      <a href="/r/{{ restaurant.id }}/alerts" class="{{ 'active' if nav=='alerts' }}">Alerts &amp; Actions</a>
+      {% if role in ('manager','owner') %}
+        <a href="/r/{{ restaurant.id }}/ops" class="{{ 'active' if nav=='ops' }}">Ops</a>
+      {% endif %}
+      <a href="/ops/evaluation" class="{{ 'active' if nav=='evaluation' }}">Evaluation</a>
+    {% endif %}
+  </nav>
+  <div class="userbox">
+    {% if restaurants|length > 1 %}
+    <form method="get" action="/" class="switcher">
+      <select name="r" onchange="this.form.submit()">
+        {% for rs in restaurants %}
+          <option value="{{ rs.id }}" {{ 'selected' if restaurant and rs.id==restaurant.id }}>{{ rs.name }}</option>
+        {% endfor %}
+      </select>
+    </form>
+    {% endif %}
+    {% if demo_mode %}<span class="pill demo" title="No live AI credentials configured — deterministic local pipeline in use">DEMO MODE</span>{% endif %}
+    <span class="who">{{ user.name }}</span>
+    <form method="post" action="/logout" class="inline"><button class="link">Sign out</button></form>
+  </div>
+  {% endif %}
+</header>
+
+<main class="container">
+  {% if restaurant %}
+    <div class="crumb">{{ restaurant.name }}{% if role %} · <span class="role">{{ role }}</span>{% endif %}</div>
+  {% endif %}
+  {% block content %}{% endblock %}
+</main>
+
+<footer class="foot">
+  Every metric is computed from stored review data. Synthetic reviews and AI-generated
+  drafts are labeled. Nothing is published externally without human approval.
+</footer>
+</body>
+</html>

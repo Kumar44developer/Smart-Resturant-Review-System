@@ -1,0 +1,16 @@
+{
+  "name": "aspects-labeled-v1",
+  "version": "2026-10-handlabel",
+  "aspect_scheme": ["food", "service", "pricing", "cleanliness", "ambience", "delivery", "portion", "waiting_time", "staff", "overall"],
+  "notes": "Hand-labeled aspect mentions per review. Evaluates which aspects the deterministic detector surfaces. Precision/recall are computed as a set match per item, then averaged.",
+  "items": [
+    {"id": 1, "text": "The food was incredible and the service was fast and friendly.", "expect_aspects": ["food", "service"]},
+    {"id": 2, "text": "Way too expensive for such small portions, but the ambience was lovely.", "expect_aspects": ["pricing", "portion", "ambience"]},
+    {"id": 3, "text": "The waiter was rude and we waited an hour. The cleanliness was poor too.", "expect_aspects": ["staff", "waiting_time", "cleanliness"]},
+    {"id": 4, "text": "Delivery was late and the packaging was a mess.", "expect_aspects": ["delivery"]},
+    {"id": 5, "text": "Delicious pasta, generous portions, great value for money.", "expect_aspects": ["food", "portion", "pricing"]},
+    {"id": 6, "text": "Dirty tables and slow service ruined an otherwise nice meal.", "expect_aspects": ["cleanliness", "service", "food"]},
+    {"id": 7, "text": "The staff were attentive and the atmosphere was warm and cozy.", "expect_aspects": ["staff", "ambience"]},
+    {"id": 8, "text": "Cold food, overpriced, and the longest waiting time of my life.", "expect_aspects": ["food", "pricing", "waiting_time"]}
+  ]
+}

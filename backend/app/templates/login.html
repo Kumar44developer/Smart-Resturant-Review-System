@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block title %}Sign in · Smart Review Intelligence{% endblock %}
+{% block content %}
+<div class="auth-wrap">
+  <div class="auth-card">
+    <h1>Smart Review Intelligence</h1>
+    <p class="muted">Turn restaurant reviews into evidence-linked, human-approved insight.</p>
+    {% if error %}<div class="alert">{{ error }}</div>{% endif %}
+    {% if demo_mode %}<div class="pill demo">DEMO MODE — deterministic local AI pipeline, no external calls</div>{% endif %}
+
+    <h2>{{ 'Create your account' if register else 'Sign in' }}</h2>
+    <form method="post" action="{{ '/register' if register else '/login' }}" class="stack">
+      {% if register %}
+        <label>Name <input name="name" required maxlength="120"></label>
+      {% endif %}
+      <label>Email <input type="email" name="email" required></label>
+      <label>Password <input type="password" name="password" required minlength="8" placeholder="at least 8 characters"></label>
+      <button class="btn primary" type="submit">{{ 'Sign up' if register else 'Sign in' }}</button>
+    </form>
+
+    <form method="post" action="/login" class="stack" style="margin-top:1.5rem">
+      <p class="muted" style="margin:0">Try the seeded demo account:</p>
+      <input type="hidden" name="email" value="demo@smart.app">
+      <input type="hidden" name="password" value="demo12345">
+      <button class="btn" type="submit">Sign in as demo@smart.app</button>
+    </form>
+
+    <p class="muted">
+      {% if register %}Have an account?{% else %}No account?{% endif %}
+      <a href="/login{% if not register %}?register=1{% endif %}">
+        {{ 'Sign in' if register else 'Create one' }}</a>
+    </p>
+  </div>
+  <div class="auth-note">
+    <p class="muted">The demo account requires the synthetic dataset to be loaded first.
+    After signing in, use “Load demo data” on the dashboard if you see no restaurants.</p>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,18 @@
+# Keep the build context small and reproducible.
+**/__pycache__/
+**/*.py[cod]
+*.egg-info/
+.pytest_cache/
+.venv/
+venv/
+env/
+backend/data/
+*.db
+*.db-shm
+*.db-wal
+.env
+.git/
+.github/
+docs/
+**/*.md
+tests/

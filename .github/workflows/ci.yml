@@ -1,0 +1,56 @@
+name: ci
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Byte-compile (import/syntax check)
+        run: python -m compileall -q app manage.py verify_e2e.py
+
+      - name: Run test suite
+        env:
+          AI_PROVIDER: demo
+        run: python -m pytest -q
+
+      - name: Migrations + end-to-end verification over real HTTP
+        env:
+          AI_PROVIDER: demo
+          SECRET_KEY: ci-secret-key-at-least-32-bytes-long
+          DATABASE_PATH: ./ci.db
+          BASE: http://127.0.0.1:8008
+        run: |
+          python manage.py migrate
+          python manage.py seed-demo
+          python -m uvicorn app.main:app --port 8008 &
+          SERVER=$!
+          # wait for readiness
+          for i in $(seq 1 30); do
+            if curl -sf http://127.0.0.1:8008/ready > /dev/null; then break; fi
+            sleep 1
+          done
+          curl -sf http://127.0.0.1:8008/health
+          # drives the live server and asserts every resume claim (exits non-zero on any failure)
+          python verify_e2e.py
+          kill $SERVER
+          echo "end-to-end verification complete"

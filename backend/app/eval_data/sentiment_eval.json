@@ -1,0 +1,26 @@
+{
+  "name": "sentiment-labeled-v1",
+  "version": "2026-10-handlabel",
+  "label_scheme": ["positive", "neutral", "negative"],
+  "notes": "Hand-labeled review snippets. Labels reflect overall sentiment a human reader would assign. Used to evaluate the deterministic (demo-mode) sentiment pipeline only; not a claim about any proprietary model.",
+  "items": [
+    {"id": 1, "text": "The pasta was absolutely delicious and the staff were so friendly. We will definitely come back!", "rating": 5, "label": "positive"},
+    {"id": 2, "text": "Amazing food, warm ambience, and quick service. Best Italian in town.", "rating": 5, "label": "positive"},
+    {"id": 3, "text": "Loved the fresh ingredients and the dessert was heavenly. Highly recommend.", "rating": 5, "label": "positive"},
+    {"id": 4, "text": "A lovely experience overall, the team made us feel welcome and the coffee was great.", "rating": 4, "label": "positive"},
+    {"id": 5, "text": "Everything was perfect, tasty food and clean tables. Wonderful evening.", "rating": 5, "label": "positive"},
+    {"id": 6, "text": "The meal was okay, nothing special but not bad. Service was fine.", "rating": 3, "label": "neutral"},
+    {"id": 7, "text": "Decent food at a reasonable price. The place was clean. It was average.", "rating": 3, "label": "neutral"},
+    {"id": 8, "text": "It was an acceptable visit. The staff were neutral and the food was standard.", "rating": 3, "label": "neutral"},
+    {"id": 9, "text": "The restaurant opened on a quiet street. We ordered and the food arrived.", "rating": null, "label": "neutral"},
+    {"id": 10, "text": "Terrible service, our waiter was rude and we waited over an hour for cold food.", "rating": 1, "label": "negative"},
+    {"id": 11, "text": "Disgusting meal, the kitchen was filthy and the staff ignored us the whole time.", "rating": 1, "label": "negative"},
+    {"id": 12, "text": "Awful experience. Overpriced, slow delivery, and the portions were tiny.", "rating": 2, "label": "negative"},
+    {"id": 13, "text": "The food was bland and burnt, the service was the worst I have ever had.", "rating": 1, "label": "negative"},
+    {"id": 14, "text": "I am very disappointed, dirty tables and a hostile manager ruined the evening.", "rating": 1, "label": "negative"},
+    {"id": 15, "text": "Great appetizers but the main course was cold and the waiting time was unbearable.", "rating": 2, "label": "negative"},
+    {"id": 16, "text": "Delicious dishes, however the service was slow and the bill was wrong.", "rating": 3, "label": "neutral"},
+    {"id": 17, "text": "The location was nice but honestly the food was mediocre and overpriced.", "rating": 2, "label": "negative"},
+    {"id": 18, "text": "Friendly staff and a cozy interior made up for the slightly underwhelming coffee.", "rating": 4, "label": "positive"}
+  ]
+}

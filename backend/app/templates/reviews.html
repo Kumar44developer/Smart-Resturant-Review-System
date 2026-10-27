@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+{% block title %}Reviews{% endblock %}
+{% block content %}
+
+<div class="card">
+  <h3>Add a review</h3>
+  <form method="post" action="/r/{{ restaurant.id }}/reviews" class="stack">
+    <label>Review text
+      <textarea name="review_text" required maxlength="5000" rows="3" placeholder="Paste or type a customer review"></textarea>
+    </label>
+    <div class="row gap">
+      <label>Rating
+        <select name="rating">
+          <option value="">(none)</option>
+          {% for s in [5,4,3,2,1] %}<option value="{{ s }}">{{ s }}★</option>{% endfor %}
+        </select>
+      </label>
+      <label>Source <input name="source" value="manual" maxlength="60"></label>
+      <label>Author <input name="author_name" maxlength="120" placeholder="optional"></label>
+    </div>
+    <div><button class="btn primary" type="submit">Save &amp; analyze</button></div>
+  </form>
+</div>
+
+<div class="card">
+  <div class="row space-between">
+    <h3>Reviews ({{ result.total }})</h3>
+    <form method="post" action="/r/{{ restaurant.id }}/analyze-pending" class="inline">
+      <button class="btn small" type="submit">Re-analyze pending/stale</button>
+    </form>
+  </div>
+
+  <form method="get" action="/r/{{ restaurant.id }}/reviews" class="filters row gap">
+    <input name="q" value="{{ q or '' }}" placeholder="Search text (FTS)">
+    <select name="sentiment">
+      <option value="">Any sentiment</option>
+      {% for s in ['positive','neutral','negative'] %}
+        <option value="{{ s }}" {{ 'selected' if sentiment==s }}>{{ s|capitalize }}</option>
+      {% endfor %}
+    </select>
+    <input name="source" value="{{ source or '' }}" placeholder="Source">
+    <button class="btn small" type="submit">Filter</button>
+  </form>
+
+  <table class="table">
+    <thead><tr><th>Rating</th><th>Sentiment</th><th>Review</th><th>Aspects</th><th>Source</th></tr></thead>
+    <tbody>
+    {% for rv in result['items'] %}
+      <tr>
+        <td>{{ rv.rating if rv.rating is not none else '—' }}</td>
+        <td><span class="sent {{ rv.sentiment }}">{{ rv.sentiment or rv.analysis_status }}</span></td>
+        <td>
+          <a href="/reviews/{{ rv.id }}">{{ rv.review_text[:160] }}{% if rv.review_text|length > 160 %}…{% endif %}</a>
+          {% if rv.is_synthetic %}<span class="pill tiny demo">synthetic</span>{% endif %}
+        </td>
+        <td class="aspects">
+          {% for a in (rv.aspect_results or []) %}
+            <span class="chip {{ a.sentiment }}">{{ a.aspect }}</span>
+          {% endfor %}
+        </td>
+        <td>{{ rv.source }}</td>
+      </tr>
+    {% else %}
+      <tr><td colspan="5" class="muted">No reviews match. Add one above or load demo data.</td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+
+  <div class="pager row gap">
+    {% if page > 1 %}<a class="btn small" href="?q={{ q or '' }}&sentiment={{ sentiment or '' }}&source={{ source or '' }}&page={{ page-1 }}">← Prev</a>{% endif %}
+    <span class="muted">Page {{ page }} of {{ total_pages }}</span>
+    {% if page < total_pages %}<a class="btn small" href="?q={{ q or '' }}&sentiment={{ sentiment or '' }}&source={{ source or '' }}&page={{ page+1 }}">Next →</a>{% endif %}
+  </div>
+</div>
+
+{% endblock %}

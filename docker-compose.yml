@@ -1,0 +1,28 @@
+# Local dev/demo stack. Run: docker compose up --build
+services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: smart-review-platform:latest
+    ports:
+      - "8008:8008"
+    environment:
+      APP_ENV: dev                 # set to "prod" to disable /dev/seed-demo & verbose logs
+      DATABASE_PATH: /data/app.db
+      AI_PROVIDER: demo            # "openai_compat" + AI_API_KEY to use a hosted model
+      # AI_BASE_URL: https://api.groq.com/openai/v1
+      # AI_CHAT_MODEL: llama-3.3-70b-versatile
+      SECRET_KEY: change-me-to-a-random-32byte-value
+      CORS_ORIGINS: http://localhost:8008
+    volumes:
+      - appdata:/data
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://127.0.0.1:8008/ready').status==200 else 1)"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+volumes:
+  appdata:

@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+{% block title %}Dashboard{% endblock %}
+{% block content %}
+
+{% if empty %}
+  <div class="empty-state card">
+    <h2>Welcome{% if user %}, {{ user.name }}{% endif %}</h2>
+    <p>You don't own any restaurants yet. Create one, or load the labeled synthetic demo dataset to explore the platform.</p>
+    <div class="row gap">
+      <form method="post" action="/r/new">
+        <input name="name" placeholder="Restaurant name" required maxlength="200">
+        <button class="btn primary" type="submit">Create restaurant</button>
+      </form>
+      <form method="post" action="/ops/seed-demo">
+        <button class="btn" type="submit">Load demo data</button>
+      </form>
+    </div>
+  </div>
+{% else %}
+
+  <section class="kpis">
+    <div class="card kpi"><div class="kpi-num">{{ overview.total_reviews }}</div><div class="kpi-lbl">Reviews</div></div>
+    <div class="card kpi"><div class="kpi-num">{{ overview.average_rating if overview.average_rating is not none else '—' }}</div><div class="kpi-lbl">Avg rating</div></div>
+    <div class="card kpi"><div class="kpi-num">{{ overview.data_quality.coverage_pct }}%</div><div class="kpi-lbl">Analyzed coverage</div></div>
+    <div class="card kpi"><div class="kpi-num">{{ open_alerts|length }}</div><div class="kpi-lbl">Open alerts</div></div>
+  </section>
+
+  {% if overview.data_quality.synthetic_count %}
+    <div class="pill demo">Includes {{ overview.data_quality.synthetic_count }} synthetic (demo) reviews — labeled at the source row.</div>
+  {% endif %}
+
+  <div class="grid-2">
+    <div class="card">
+      <h3>Sentiment distribution</h3>
+      {% set sd = overview.sentiment_distribution %}
+      {% set tot = sd.positive + sd.neutral + sd.negative %}
+      {% for label in ['positive','neutral','negative'] %}
+        {% set c = sd[label] %}{% set pct = (100 * c / tot) if tot else 0 %}
+        <div class="bar-row"><span class="bar-lbl">{{ label|capitalize }}</span>
+          <div class="bar-track"><div class="bar-fill {{ label }}" style="width:{{ pct|round(1) }}%"></div></div>
+          <span class="bar-val">{{ c }}</span></div>
+      {% endfor %}
+    </div>
+
+    <div class="card">
+      <h3>Rating spread (stars)</h3>
+      {% set rd = overview.rating_distribution %}
+      {% set tot = overview.total_reviews %}
+      {% for star in ['5','4','3','2','1'] %}
+        {% set c = rd.get(star, 0) %}{% set pct = (100 * c / tot) if tot else 0 %}
+        <div class="bar-row"><span class="bar-lbl">{{ star }}★</span>
+          <div class="bar-track"><div class="bar-fill rating" style="width:{{ pct|round(1) }}%"></div></div>
+          <span class="bar-val">{{ c }}</span></div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>This week</h3>
+    <p class="muted">Period {{ weekly.period.from[:10] }} → {{ weekly.period.to[:10] }}</p>
+    <ul class="weekly">
+      <li>Volume: <b>{{ weekly.volume.this_period }}</b> (Δ {{ weekly.volume.delta }} vs prior week)</li>
+      <li>Avg rating: <b>{{ weekly.average_rating.this_period if weekly.average_rating.this_period is not none else '—' }}</b>
+          (Δ {{ weekly.average_rating.delta if weekly.average_rating.delta is not none else '—' }})</li>
+      {% if weekly.top_complaints %}<li>Top complaints: {{ weekly.top_complaints | map(attribute='theme') | join(', ') }}</li>{% endif %}
+      {% if weekly.top_praise %}<li>Top praise: {{ weekly.top_praise | map(attribute='theme') | join(', ') }}</li>{% endif %}
+      <li>{{ weekly.recommendation_count }} evidence-backed improvement themes · {{ weekly.open_actions }} open actions</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <div class="row space-between">
+      <h3>Recent reviews</h3>
+      <a class="btn small" href="/r/{{ restaurant.id }}/reviews">All reviews →</a>
+    </div>
+    <table class="table">
+      <thead><tr><th>Rating</th><th>Sentiment</th><th>Review</th><th>Source</th></tr></thead>
+      <tbody>
+      {% for rv in recent %}
+        <tr>
+          <td>{{ rv.rating if rv.rating is not none else '—' }}</td>
+          <td><span class="sent {{ rv.sentiment }}">{{ rv.sentiment or 'pending' }}</span></td>
+          <td><a href="/reviews/{{ rv.id }}">{{ rv.review_text[:110] }}{% if rv.review_text|length > 110 %}…{% endif %}</a></td>
+          <td>{{ rv.source }}</td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+{% endif %}
+{% endblock %}

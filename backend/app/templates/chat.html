@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% block title %}Ask your reviews{% endblock %}
+{% block content %}
+
+<div class="card">
+  <h3>Ask your reviews</h3>
+  <p class="muted small">Grounded conversational analytics over this restaurant's stored reviews only.
+    Answers cite the specific reviews used, and the assistant <b>abstains</b> when the data can't support an answer
+    (including questions about revenue, salaries, personal details, or other restaurants).</p>
+  {% if demo_mode %}<div class="pill demo">Demo answer engine (deterministic) — replaceable by any OpenAI-compatible provider</div>{% endif %}
+
+  <form method="post" action="/r/{{ restaurant.id }}/chat" class="stack">
+    {% if session_id %}<input type="hidden" name="session_id" value="{{ session_id }}">{% endif %}
+    <label>Question
+      <input name="question" required maxlength="1000" placeholder="e.g. What do customers say about waiting time?">
+    </label>
+    <div><button class="btn primary" type="submit">Ask</button></div>
+  </form>
+
+  {% if sessions %}
+  <div class="row gap" style="margin-top:.75rem">
+    <span class="muted small">Sessions:</span>
+    {% for s in sessions %}
+      {% if s.restaurant_id == restaurant.id %}
+        <a class="btn small {{ 'ghost' if s.id != session_id }}" href="/r/{{ restaurant.id }}/chat?session_id={{ s.id }}">#{{ s.id }}</a>
+      {% endif %}
+    {% endfor %}
+    <a class="btn small ghost" href="/r/{{ restaurant.id }}/chat">+ new</a>
+  </div>
+  {% endif %}
+</div>
+
+<div class="thread">
+  {% for m in messages %}
+    <div class="msg {{ m.role }}">
+      <div class="role-tag">{{ m.role }}</div>
+      <div class="msg-body">{{ m.content }}</div>
+      {% if m.citations %}
+        <div class="citations">
+          <span class="muted small">Cited evidence:</span>
+          {% for c in m.citations %}
+            <a class="cite" href="/reviews/{{ c.review_id }}">
+              #{{ c.review_id }} · {{ c.rating or '—' }}★{% if c.excerpt %} “{{ c.excerpt[:80] }}…”{% endif %}
+            </a>
+          {% endfor %}
+        </div>
+      {% endif %}
+    </div>
+  {% else %}
+    <p class="muted">No messages yet — ask a question above.</p>
+  {% endfor %}
+</div>
+
+{% endblock %}

@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+{% block title %}Review{% endblock %}
+{% block content %}
+
+<div class="card">
+  <div class="row space-between">
+    <h3>Review #{{ review.id }}</h3>
+    <span>
+      <span class="sent {{ analysis.sentiment if analysis else '' }}">{{ (analysis.sentiment if analysis else review.analysis_status) or 'pending' }}</span>
+      {% if review.rating %}<span class="stars">{{ review.rating }}★</span>{% endif %}
+    </span>
+  </div>
+  <p class="review-text">{{ review.review_text }}</p>
+  <p class="muted">
+    Source: {{ review.source }}{% if review.author_name %} · Author: {{ review.author_name }}{% endif %}
+    {% if review.review_ts %} · {{ review.review_ts[:10] }}{% endif %}
+    {% if review.is_synthetic %} · <span class="pill tiny demo">synthetic data</span>{% endif %}
+  </p>
+</div>
+
+<div class="grid-2">
+  <div class="card">
+    <h4>Sentiment &amp; aspects</h4>
+    {% if analysis %}
+      <p>Sentiment: <span class="sent {{ analysis.sentiment }}">{{ analysis.sentiment }}</span>
+         {% if analysis.confidence is not none %}<span class="muted">({{ (analysis.confidence*100)|round(0) }}% confidence)</span>{% endif %}</p>
+      {% if analysis.summary %}<p class="muted">{{ analysis.summary }}</p>{% endif %}
+      <table class="table">
+        <thead><tr><th>Aspect</th><th>Verdict</th><th>Evidence excerpt</th></tr></thead>
+        <tbody>
+        {% for a in analysis.aspect_results %}
+          <tr><td>{{ a.aspect }}</td><td><span class="sent {{ a.sentiment }}">{{ a.sentiment }}</span></td>
+              <td class="muted">{{ a.excerpt or '—' }}</td></tr>
+        {% else %}
+          <tr><td colspan="3" class="muted">No aspects detected.</td></tr>
+        {% endfor %}
+        </tbody>
+      </table>
+      {% if analysis.topics %}<p class="chips">{% for t in analysis.topics %}<span class="chip">{{ t }}</span>{% endfor %}</p>{% endif %}
+      <p class="muted small">Analyzed by {{ analysis.model_provider }}/{{ analysis.model_id }}.</p>
+    {% else %}
+      <p class="muted">Not analyzed yet.
+        <a href="/r/{{ restaurant.id }}/reviews">Back to reviews</a>.</p>
+    {% endif %}
+  </div>
+
+  <div class="card">
+    <h4>Reply Studio</h4>
+    <p class="muted small">AI-drafted responses are labeled and <b>never auto-published</b>. A manager must approve a draft, and it is still only approved for manual sending.</p>
+    {% if role in ('member','manager','owner') %}
+    <form method="post" action="/reviews/{{ review.id }}/draft" class="row gap">
+      <select name="tone">
+        {% for t in ['professional','friendly','empathetic','concise'] %}<option value="{{ t }}">{{ t }}</option>{% endfor %}
+      </select>
+      <select name="length">
+        {% for l in ['short','medium','long'] %}<option value="{{ l }}">{{ l }}</option>{% endfor %}
+      </select>
+      <button class="btn primary small" type="submit">Generate draft</button>
+    </form>
+    {% endif %}
+
+    <div class="drafts">
+      {% for d in drafts %}
+        <div class="draft {{ d.status }}">
+          <div class="row space-between">
+            <span class="pill {{ 'demo' if d.is_ai_generated else '' }}">{{ 'AI-generated' if d.is_ai_generated else 'manual' }} · {{ d.status }}</span>
+            <span class="muted small">{{ d.model_provider }}/{{ d.model_id }} · {{ d.tone }}</span>
+          </div>
+          <form method="post" action="/drafts/{{ d.id }}/edit">
+            <textarea name="body" rows="4">{{ d.body }}</textarea>
+            <button class="btn small" type="submit">Save edit</button>
+          </form>
+          {% if d.status != 'approved' and role in ('manager','owner') %}
+          <form method="post" action="/drafts/{{ d.id }}/approve" class="inline">
+            <button class="btn primary small" type="submit">Approve for sending</button>
+          </form>
+          {% endif %}
+          {% if d.approved_at %}<p class="muted small">Approved {{ d.approved_at }}</p>{% endif %}
+        </div>
+      {% else %}
+        <p class="muted">No drafts yet.</p>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+
+{% endblock %}

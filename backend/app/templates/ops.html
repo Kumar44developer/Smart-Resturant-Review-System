@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block title %}Operations{% endblock %}
+{% block content %}
+
+<div class="card">
+  <h3>AI usage &amp; cost</h3>
+  <p class="muted small">Records of every model operation this restaurant triggered. Cost is the stored
+    integer micro-unit estimate with its pricing version — reported exactly, never rounded into a marketing claim.</p>
+  <div class="kpis">
+    <div class="card kpi"><div class="kpi-num">{{ usage.operations or 0 }}</div><div class="kpi-lbl">Operations</div></div>
+    <div class="card kpi"><div class="kpi-num">{{ usage.errors or 0 }}</div><div class="kpi-lbl">Errors</div></div>
+    <div class="card kpi"><div class="kpi-num">{{ usage.fallbacks or 0 }}</div><div class="kpi-lbl">Fallbacks</div></div>
+    <div class="card kpi"><div class="kpi-num">{{ usage.avg_latency_ms|round(0) if usage.avg_latency_ms else '—' }}</div><div class="kpi-lbl">Avg latency (ms)</div></div>
+  </div>
+  <p class="muted">Tokens in/out: {{ usage.input_tokens or 0 }} / {{ usage.output_tokens or 0 }} ·
+     estimated cost: <span class="mono">{{ usage.cost_micros or 0 }} micros</span></p>
+  {% if demo_mode %}<div class="pill demo">Demo mode performs no external calls, so token/cost counters stay at zero — shown honestly rather than faked.</div>{% endif %}
+</div>
+
+<div class="card">
+  <h3>Recent audit events</h3>
+  <table class="table">
+    <thead><tr><th>When</th><th>Actor</th><th>Action</th><th>Resource</th></tr></thead>
+    <tbody>
+    {% for e in audit %}
+      <tr><td class="muted">{{ e.created_at }}</td><td>{{ e.actor_user_id or '—' }}</td>
+          <td>{{ e.action }}</td><td>{{ e.resource_type }}{% if e.resource_id %} #{{ e.resource_id }}{% endif %}</td></tr>
+    {% else %}
+      <tr><td colspan="4" class="muted">No audit events yet.</td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+{% endblock %}

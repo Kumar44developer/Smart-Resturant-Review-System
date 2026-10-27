@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+{% block title %}Alerts & Actions{% endblock %}
+{% block content %}
+
+<div class="card">
+  <div class="row space-between">
+    <h3>Complaint alerts</h3>
+    {% if role in ('manager','owner') %}
+    <form method="post" action="/r/{{ restaurant.id }}/alerts/detect" class="inline">
+      <button class="btn small" type="submit">Run detection (14-day window)</button>
+    </form>
+    {% endif %}
+  </div>
+  <p class="muted small">Alerts are produced by explicit statistical thresholds (min observations, rating-drop, negative-rise, aspect recurrence),
+    not by a model. They flag a <i>possible</i> problem for human investigation — never a verified incident.</p>
+
+  {% for a in alerts %}
+    <div class="alert-item sev-{{ a.severity }}">
+      <div class="row space-between">
+        <span><span class="pill sev-{{ a.severity }}">{{ a.severity }}</span> <b>{{ a.rule }}</b>
+          {% if a.aspect %}<span class="chip negative">{{ a.aspect }}</span>{% endif %}</span>
+        <span class="muted small">{{ a.status }}{% if a.window %} · {{ a.window }}{% endif %}</span>
+      </div>
+      <p>{{ a.message }}</p>
+      <div class="muted small mono">{{ a.metric }}</div>
+      {% if a.status == 'open' and role in ('manager','owner') %}
+      <div class="row gap">
+        <form method="post" action="/alerts/{{ a.id }}/status" class="inline"><input type="hidden" name="new_status" value="reviewed"><button class="btn small" type="submit">Mark reviewed</button></form>
+        <form method="post" action="/alerts/{{ a.id }}/status" class="inline"><input type="hidden" name="new_status" value="dismissed"><button class="btn small ghost" type="submit">Dismiss</button></form>
+      </div>
+      {% endif %}
+    </div>
+  {% else %}
+    <p class="muted">No alerts. Run detection to evaluate recent data.</p>
+  {% endfor %}
+</div>
+
+<div class="card">
+  <h3>Action tracking</h3>
+  <p class="muted small">Turn an insight into an owned, dated commitment and follow through.</p>
+  {% if role in ('member','manager','owner') %}
+  <form method="post" action="/r/{{ restaurant.id }}/actions" class="row gap inline-form">
+    <input name="title" required maxlength="200" placeholder="Action (e.g. Add a host at peak hours)">
+    <input type="date" name="due_date">
+    <button class="btn primary small" type="submit">Add action</button>
+  </form>
+  {% endif %}
+  <table class="table">
+    <thead><tr><th>Action</th><th>Status</th><th>Due</th><th></th></tr></thead>
+    <tbody>
+    {% for ac in actions %}
+      <tr>
+        <td>{{ ac.title }}</td>
+        <td><span class="pill status-{{ ac.status }}">{{ ac.status }}</span></td>
+        <td class="muted">{{ ac.due_date or '—' }}</td>
+        <td>
+          {% if role in ('member','manager','owner') and ac.status != 'done' %}
+          <form method="post" action="/actions/{{ ac.id }}/status" class="inline">
+            <input type="hidden" name="new_status" value="done"><button class="btn small ghost" type="submit">Mark done</button>
+          </form>
+          {% endif %}
+        </td>
+      </tr>
+    {% else %}
+      <tr><td colspan="4" class="muted">No actions yet.</td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+{% endblock %}

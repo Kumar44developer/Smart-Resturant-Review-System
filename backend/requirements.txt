@@ -1,0 +1,17 @@
+# Smart Restaurant Review Intelligence Platform - backend runtime dependencies.
+# Pure-Python stack only. Chosen deliberately because this machine enforces
+# Windows Smart App Control, which blocks unsigned native binaries, and no
+# administrator credentials are available to change that. See docs/ARCHITECTURE.md
+# and docs/DEPLOYMENT.md for the Postgres + SQLAlchemy + scikit-learn production
+# variant (provided as configuration, not run in this environment).
+fastapi==0.162.0
+uvicorn[standard]==0.54.0
+starlette==1.10.0
+pydantic==2.14.1
+Jinja2==3.1.6
+PyJWT==2.15.1
+httpx==0.28.1
+python-multipart==0.0.32
+
+# Test-only
+pytest==9.1.1

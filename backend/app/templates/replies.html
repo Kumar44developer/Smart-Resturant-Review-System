@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% block title %}Reply Studio{% endblock %}
+{% block content %}
+
+<div class="card">
+  <h2>Reply Studio</h2>
+  <p class="muted">Recent negative/neutral reviews that most warrant a response. Generate an AI draft,
+    edit it in your own words, then approve it for <b>manual</b> sending. Nothing is published automatically —
+    every draft is labeled AI-generated and requires a human approval step.</p>
+</div>
+
+{% for c in candidates %}
+<div class="card review-card">
+  <div class="row space-between">
+    <div>
+      <a href="/reviews/{{ c.review.id }}"><b>#{{ c.review.id }}</b></a>
+      <span class="sent {{ c.review.sentiment }}">{{ c.review.sentiment }}</span>
+      {% if c.review.rating %}<span class="stars">{{ c.review.rating }}★</span>{% endif %}
+      {% if c.review.is_synthetic %}<span class="pill tiny demo">synthetic</span>{% endif %}
+    </div>
+    <span class="muted small">{{ c.review.review_ts[:10] if c.review.review_ts else '' }} · {{ c.review.source }}</span>
+  </div>
+  <p class="review-text">{{ c.review.review_text[:400] }}{% if c.review.review_text|length > 400 %}…{% endif %}</p>
+
+  {% if c.review.aspect_results %}
+    <p class="chips">{% for a in c.review.aspect_results %}
+      <span class="chip {{ a.sentiment }}">{{ a.aspect }}: {{ a.sentiment }}</span>{% endfor %}</p>
+  {% endif %}
+
+  {% if not c.has_approved and role in ('member','manager','owner') %}
+  <form method="post" action="/reviews/{{ c.review.id }}/draft" class="row gap inline-form">
+    <select name="tone">{% for t in ['professional','friendly','empathetic','concise'] %}<option value="{{ t }}">{{ t }}</option>{% endfor %}</select>
+    <button class="btn primary small" type="submit">Generate draft</button>
+  </form>
+  {% endif %}
+
+  {% for d in c.drafts %}
+    <div class="draft {{ d.status }}">
+      <div class="row space-between">
+        <span class="pill demo">AI-generated · {{ d.status }}</span>
+        <a class="muted small" href="/reviews/{{ c.review.id }}">edit &amp; approve on review page →</a>
+      </div>
+      <p>{{ d.body }}</p>
+    </div>
+  {% endfor %}
+</div>
+{% else %}
+  <div class="card"><p class="muted">No negative/neutral reviews awaiting a reply. Load demo data or add reviews first.</p></div>
+{% endfor %}
+
+{% endblock %}

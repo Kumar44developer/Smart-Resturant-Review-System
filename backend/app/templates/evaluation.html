@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block title %}Evaluation{% endblock %}
+{% block content %}
+
+<div class="card">
+  <h3>Evaluation runs</h3>
+  <p class="muted small">These metrics evaluate the <b>actual deterministic pipeline</b> running in this deployment
+    (demo-mode sentiment, aspect detection, and RAG abstention/citation integrity) against hand-labeled datasets.
+    They are not a benchmark or claim about any hosted model. Choose a restaurant to also evaluate RAG against its real reviews.</p>
+
+  <form method="post" action="/ops/evaluation/run" class="row gap inline-form">
+    <label>Restaurant (optional, for RAG checks)
+      <select name="restaurant_id">
+        <option value="">— none —</option>
+        {% for rs in restaurants %}<option value="{{ rs.id }}">{{ rs.name }}</option>{% endfor %}
+      </select>
+    </label>
+    <button class="btn primary small" type="submit">Run evaluation</button>
+  </form>
+</div>
+
+{% for run in runs %}
+<div class="card eval-run">
+  <div class="row space-between">
+    <b>{{ run.task }}</b>
+    <span class="muted small">ds {{ run.dataset_version }} · model {{ run.model_version }} · prompt {{ run.prompt_version }} · {{ run.created_at }}</span>
+  </div>
+  <pre class="metrics mono">{{ run.metrics }}</pre>
+  {% if run.failures %}
+    <details><summary class="muted small">{{ run.failures|length }} failure case(s)</summary>
+      <pre class="mono small">{{ run.failures }}</pre>
+    </details>
+  {% endif %}
+</div>
+{% else %}
+  <div class="card"><p class="muted">No evaluation runs recorded yet. Run one above.</p></div>
+{% endfor %}
+
+{% endblock %}
